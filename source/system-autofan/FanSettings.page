@@ -31,12 +31,16 @@ function parse_autofan_cfg($plugin,$index) {
   return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
 }
 
-$index  = $_POST['index']?:'';
-$cfg    = parse_autofan_cfg($plugin,$index);
-$sName  = "autofan";
-$fName  = "$docroot/plugins/$plugin/scripts/$sName";
-$width  = strstr('gray,azure',$display['theme']) ? 305:300;
-$fan_id = 1;
+$index      = $_POST['index']?:'';
+$cfg        = parse_autofan_cfg($plugin,$index);
+$sName      = "autofan";
+$fName      = "$docroot/plugins/$plugin/scripts/$sName";
+$width      = strstr('gray,azure',$display['theme']) ? 305:300;
+$fan_id     = 1;
+$controller = $_POST['controller'] ?? $cfg['controller'] ?? '';
+$fan_filter = $controller ? realpath(dirname($controller)) : '';
+$fans       = list_fan_page($fan_filter);
+if (empty($fans) && $fan_filter) $fans = list_fan_page('');
 
 function temp_val($val) {
   global $display;
@@ -56,6 +60,19 @@ function list_pwm() {
   foreach ($chips as $chip) {
     $name = is_file("$chip/name") ? file_get_contents("$chip/name") : '';
     foreach (preg_grep("/pwm\d+$/", scan_dir($chip)) as $pwm) $out[] = ['chip'=>$name, 'name'=>end(explode('/',$pwm)), 'sensor'=>$pwm];
+  }
+  return $out;
+}
+function list_fan_page($filter_real_dir = '') {
+  $out = [];
+  exec("find /sys/devices -type f -iname 'fan[0-9]_input' -exec dirname \"{}\" +|uniq", $chips);
+  foreach ($chips as $chip) {
+    if ($filter_real_dir && realpath($chip) !== $filter_real_dir) continue;
+    $name = is_file("$chip/name") ? trim(file_get_contents("$chip/name")) : '';
+    foreach (preg_grep("/fan\d+_input/", scan_dir($chip)) as $fan) {
+      $rpm = intval(file_get_contents($fan));
+      $out[] = ['chip'=>$name, 'name'=>end(explode('/',$fan)), 'sensor'=>$fan, 'rpm'=>$rpm];
+    }
   }
   return $out;
 }
@@ -89,12 +106,11 @@ function tempVal(form) {
 function detectFan() {
   var pwm = $('select[name=controller]').val();
   if (pwm) {
-    $('input[name=fan]').val('_(Please wait)_...');
-    $('#fan').prop('disabled',true);
+    $('#detect_fan').prop('disabled',true).val('_(Please wait)_...');
     $.get('/plugins/<?=$plugin;?>/include/SystemFan.php',{op:'detect', pwm:pwm},function(data) {
-      $('input[name=fan]').val(data).trigger('change');
-      $('#fan').prop('disabled',false);
+      $('#detect_fan').prop('disabled',false).val('_(Detect)_');
       if (data) {
+        $('select[name=fan]').val(data).trigger('change');
         $('input[name=pwm]').prop('placeholder','_(Click DETECT)_');
         $('#pwm').prop('disabled',false);
       }
@@ -103,7 +119,7 @@ function detectFan() {
 }
 function detectFanLow() {
   var pwm = $('select[name=controller]').val();
-  var fan = $('input[name=fan]').val();
+  var fan = $('select[name=fan]').val();
   if (pwm && fan) {
     $('input[name=pwm]').val('_(Please wait)_...');
     $('#pwm').prop('disabled',true);
@@ -153,13 +169,13 @@ $(function() {
   showStatus('<?=$sName?>');
   $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width?>, explicitClose:'..._(close)_'});
   if (!$('select[name=controller]').val()) {
-    $('input[name=fan]').val('').prop('placeholder','');
+    $('select[name=fan]').val('');
     $('input[name=pwm]').val('');
     $('input[name=low]').val('');
     $('input[name=high]').val('');
     $('input[name=interval]').val('');
     $('select[name=exclude]').val('');
-    $('#fan').prop('disabled',true);
+    $('#detect_fan').prop('disabled',true);
     $('#pwm').prop('disabled',true);
   }
   toggleTempSource('<?=htmlspecialchars($cfg['temp_source']??'hdd')?>');
@@ -188,10 +204,15 @@ _(PWM controller)_:
   </select>
 
 _(PWM fan)_:
-: <input type="text" name="fan" value="<?=$cfg['fan']??''?>" placeholder="_(Click DETECT)_"><input type="button" id="fan" value="_(Detect)_" onclick="detectFan()" style="margin:0">
+: <select name="fan">
+  <?=mk_option($cfg['fan']??'', "", _("None"))?>
+  <?foreach ($fans as $f):?>
+  <?=mk_option($cfg['fan']??'', $f['sensor'], "{$f['chip']} - {$f['name']} ({$f['rpm']} rpm)")?>
+  <?endforeach;?>
+  </select><input type="button" id="detect_fan" value="_(Detect)_" onclick="detectFan()" style="margin:0" <?=$controller?'':'disabled'?>>
 
 _(Minimum PWM value)_:
-: <input type="text" name="pwm" value="<?=$cfg['pwm']??''?>" placeholder=""><input type="button" id="pwm" value="_(Detect)_" onclick="detectFanLow()" style="margin:0" <?=isset($cfg['fan'])?'':'disabled'?>>
+: <input type="text" name="pwm" value="<?=$cfg['pwm']??''?>" placeholder=""><input type="button" id="pwm" value="_(Detect)_" onclick="detectFanLow()" style="margin:0" <?=($cfg['fan']??'')?'':'disabled'?>>
 
 _(Low temperature threshold)_ (&deg;<?=$display['unit']?>):
 : <input type="number" name="low" min="0" max="200" value="<?=temp_val($cfg['low'])??''?>">
