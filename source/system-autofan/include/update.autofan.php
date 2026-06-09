@@ -24,6 +24,9 @@ foreach ($new as $key => $value) {
     $options = '';
     break;
   case 'service':
+  case 'temp_source':
+  case 'hwmon_name':
+    // stored in cfg but not passed as autofan CLI flags
     break;
   default:
     if ($key[0]!='#') $options .= (isset($prefix[$key]) ? "-{$prefix[$key]} " : "")."$value ";

@@ -12,6 +12,7 @@
  *
  * Version log:
  * Version 1.6   Modified by InfinityMod - added multifan support
+ * Version 1.7   Modified by mrjacobarussell - added temp sensor enumeration (list_temp)
  */
 ?>
 <?
@@ -28,7 +29,28 @@ function list_fan() {
   exec("find /sys/devices -type f -iname 'fan[0-9]_input' -exec dirname \"{}\" +|uniq", $chips);
   foreach ($chips as $chip) {
     $name = is_file("$chip/name") ? file_get_contents("$chip/name") : false;
-    if ($name) foreach (preg_grep("/fan\d+_input/", scan_dir($chip)) as $fan) $out[] = ['chip'=>$name, 'name'=>end(explode('/',$fan)), 'sensor'=>$fan , 'rpm'=>file_get_contents($fan)];
+    if ($name) foreach (preg_grep("/fan\d+_input/", scan_dir($chip)) as $fan) $out[] = ['chip'=>trim($name), 'name'=>end(explode('/',$fan)), 'sensor'=>$fan , 'rpm'=>intval(file_get_contents($fan))];
+  }
+  return $out;
+}
+function list_temp() {
+  $out = [];
+  exec("find /sys/devices -type f -name 'temp[0-9]_input' -exec dirname \"{}\" +|uniq", $chips);
+  foreach ($chips as $chip) {
+    $name = is_file("$chip/name") ? trim(file_get_contents("$chip/name")) : '';
+    if (!$name) continue;
+    foreach (preg_grep("/temp\d+_input$/", scan_dir($chip)) as $temp) {
+      $label_file = preg_replace('/_input$/', '_label', $temp);
+      $label = is_file($label_file) ? trim(file_get_contents($label_file)) : end(explode('/',$temp));
+      $raw = intval(file_get_contents($temp));
+      $out[] = [
+        'chip'   => $name,
+        'name'   => end(explode('/',$temp)),
+        'label'  => $label,
+        'sensor' => $temp,
+        'temp'   => round($raw / 1000, 1),
+      ];
+    }
   }
   return $out;
 }
@@ -86,6 +108,10 @@ case 'pwm':
     file_put_contents($pwm."_enable", $default_method);
     exec("$autofan start >/dev/null");
   }
+  break;
+case 'temps':
+  header('Content-Type: application/json');
+  echo json_encode(list_temp());
   break;
 }
 ?>

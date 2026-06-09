@@ -16,6 +16,8 @@ Icon="dynamix.system.autofan.png"
  *
  * Version log:
  * Version 1.6   Modified by InfinityMod - added multifan support
+ * Version 1.7   Modified by mrjacobarussell - hwmon sensor probe temp source
+ *                                           - stable device name (hwmon_name) for USB controllers
  */
 ?>
 <?
@@ -117,6 +119,32 @@ function changePWM(index,value) {
   $('input[name=controller]').val(value);
   document.updatepwm.submit();
 }
+function loadTempSensors() {
+  var current = '<?=htmlspecialchars($cfg['temp_sensor']??'')?>';
+  $.getJSON('/plugins/<?=$plugin?>/include/SystemFan.php', {op:'temps'}, function(data) {
+    var sel = $('#temp_sensor_select');
+    sel.empty();
+    sel.append('<option value="">_(None)_</option>');
+    $.each(data, function(i, item) {
+      var label = item.chip + ' - ' + item.label + ' (' + item.temp + '°C)';
+      var selected = (item.sensor === current) ? ' selected' : '';
+      sel.append('<option value="' + item.sensor + '"' + selected + '>' + label + '</option>');
+    });
+    if (current) sel.val(current);
+    $('input[name=temp_sensor]').val(sel.val() || '');
+  });
+  $('#temp_sensor_select').on('change', function() {
+    $('input[name=temp_sensor]').val(this.value);
+  });
+}
+function toggleTempSource(val) {
+  if (val === 'sensor') {
+    $('#temp_sensor_row').show();
+    loadTempSensors();
+  } else {
+    $('#temp_sensor_row').hide();
+  }
+}
 $(function() {
   showStatus('<?=$sName?>');
   $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width?>, explicitClose:'..._(close)_'});
@@ -130,6 +158,7 @@ $(function() {
     $('#fan').prop('disabled',true);
     $('#pwm').prop('disabled',true);
   }
+  toggleTempSource('<?=htmlspecialchars($cfg['temp_source']??'hdd')?>');
 });
 </script>
 
@@ -137,7 +166,7 @@ $(function() {
 <form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="tempVal(this)">
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#include" value="plugins/<?=$plugin?>/include/update.autofan.php">
-<input type="hidden" name="#prefix" value="controller=c&fan=f&pwm=l&low=t&high=T&interval=m&exclude=e">
+<input type="hidden" name="#prefix" value="controller=c&fan=f&pwm=l&low=t&high=T&interval=m&exclude=e&temp_sensor=s">
 
 _(Fan control function)_:
 : <select name="service">
@@ -180,6 +209,24 @@ _(Exclude drives)_:
   <?=mk_option_check($cfg['exclude']??'',$disk['device'],sprintf('%s (%s)',_(my_disk($disk['name']),3),$disk['device']))?>
   <?endforeach;?>
   </select>
+
+_(Temperature source)_:
+: <select name="temp_source" onchange="toggleTempSource(this.value)">
+  <?=mk_option($cfg['temp_source']??'hdd', "hdd", _("Hard drives (smartctl)"))?>
+  <?=mk_option($cfg['temp_source']??'hdd', "sensor", _("Hardware sensor probe"))?>
+  </select>
+
+_(Temperature sensor)_:
+: <span id="temp_sensor_row">
+  <select id="temp_sensor_select" style="min-width:300px">
+    <option value="">_(Loading...)_</option>
+  </select>
+  <input type="hidden" name="temp_sensor" value="<?=htmlspecialchars($cfg['temp_sensor']??'')?>">
+  </span>
+
+_(Stable device name)_:
+: <input type="text" name="hwmon_name" value="<?=htmlspecialchars($cfg['hwmon_name']??'')?>" placeholder="e.g. corsaircpro" style="width:200px">
+  <br><span class="orange-text"><i>_(hwmon kernel name for stable path resolution — prevents USB controllers losing their fan paths after reboot. Leave blank for fixed motherboard fans.)_</i></span>
 
 <input type="submit" name="#default" value="_(Default)_">
 : <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
