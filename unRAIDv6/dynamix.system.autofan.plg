@@ -2,20 +2,25 @@
 
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "dynamix.system.autofan">
-<!ENTITY author    "Bergware/gfjardim">
-<!ENTITY version   "2025.11.14">
+<!ENTITY author    "Bergware/gfjardim/mrjacobarussell">
+<!ENTITY version   "2025.06.09">
 <!ENTITY launch    "Settings/FanSettings">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/unraid/dynamix/master/unRAIDv6/&name;.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/mrjacobarussell/dynamix/corsair-commander-pro/unRAIDv6/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "bc97a82871229d183f6d6a505897b483">
+<!ENTITY MD5       "f6cc5c5193457e7243aa759cba0827be">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0">
 
 <CHANGES>
-##Dynamix System Autofan
+##Dynamix System Autofan (Enhanced Fork)
 
-###2025.11.14
+###2025.06.09
+- Add hardware sensor probe temperature source (Corsair Commander Pro, hwmon sensors)
+- Stable hwmon device name resolution for USB controllers (fixes path loss after reboot)
+- New UI: Temperature source dropdown, sensor picker, stable device name field
+
+###2025.11.14 (upstream)
 - Migrate repository to Unraid
 
 ###2023.02.05a
@@ -112,7 +117,7 @@ fi
 
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
-<URL>https://raw.githubusercontent.com/unraid/dynamix/master/archive/&name;.txz</URL>
+<URL>https://github.com/mrjacobarussell/dynamix/releases/download/2025.06.09/dynamix.system.autofan.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
@@ -144,6 +149,7 @@ echo "-----------------------------------------------------------"
 echo " Plugin &name; is installed."
 echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2023, Bergware International"
+echo " Enhanced fork by mrjacobarussell"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
