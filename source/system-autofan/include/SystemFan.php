@@ -59,17 +59,23 @@ switch ($_GET['op']??'') {
 case 'detect':
   $pwm = $_GET['pwm']??'';
   if (is_file($pwm)) {
+    $pwm_dir = dirname(realpath($pwm));
     $default_method = file_get_contents($pwm."_enable");
     $default_rpm    = file_get_contents($pwm);
     file_put_contents($pwm."_enable", "1");
     file_put_contents($pwm, "150");
     sleep(3);
-    $init_fans = list_fan();
+    $all_init  = list_fan();
     file_put_contents($pwm, "255");
     sleep(3);
-    $final_fans = list_fan();
+    $all_final = list_fan();
     file_put_contents($pwm, $default_rpm);
     file_put_contents($pwm."_enable", $default_method);
+    // Only consider fans on the same hwmon chip as the selected PWM controller.
+    // Without this filter, a fan on a different chip can win the race when its
+    // RPM happens to fluctuate while the target chip's PWM is being cycled.
+    $init_fans  = array_values(array_filter($all_init,  fn($f) => dirname(realpath($f['sensor'])) === $pwm_dir));
+    $final_fans = array_values(array_filter($all_final, fn($f) => dirname(realpath($f['sensor'])) === $pwm_dir));
     for ($i=0; $i < count($final_fans); $i++) {
       if (($final_fans[$i]['rpm'] - $init_fans[$i]['rpm'])>0) {
         echo $init_fans[$i]['sensor'];
