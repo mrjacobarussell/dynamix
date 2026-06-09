@@ -137,6 +137,10 @@ function loadTempSensors() {
     $('input[name=temp_sensor]').val(this.value);
   });
 }
+function updateDriveFilterLabel(val) {
+  var label = val === 'include' ? '_(Include drives)_' : '_(Exclude drives)_';
+  $('#drive_filter_label').text(label);
+}
 function toggleTempSource(val) {
   if (val === 'sensor') {
     $('#temp_sensor_row').show();
@@ -159,6 +163,7 @@ $(function() {
     $('#pwm').prop('disabled',true);
   }
   toggleTempSource('<?=htmlspecialchars($cfg['temp_source']??'hdd')?>');
+  updateDriveFilterLabel('<?=htmlspecialchars($cfg['filter_mode']??'exclude')?>');
 });
 </script>
 
@@ -166,7 +171,7 @@ $(function() {
 <form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="tempVal(this)">
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#include" value="plugins/<?=$plugin?>/include/update.autofan.php">
-<input type="hidden" name="#prefix" value="controller=c&fan=f&pwm=l&low=t&high=T&interval=m&exclude=e&temp_sensor=s">
+<input type="hidden" name="#prefix" value="controller=c&fan=f&pwm=l&low=t&high=T&interval=m&temp_sensor=s">
 
 _(Fan control function)_:
 : <select name="service">
@@ -197,7 +202,13 @@ _(High temperature threshold)_ (&deg;<?=$display['unit']?>):
 _(Refresh interval)_ (_(minutes)_):
 : <input type="text" name="interval" value="<?=$cfg['interval']??''?>">
 
-_(Exclude drives)_:
+_(Drive filter mode)_:
+: <select name="filter_mode" onchange="updateDriveFilterLabel(this.value)">
+  <?=mk_option($cfg['filter_mode']??'exclude', "exclude", _("Exclude selected drives"))?>
+  <?=mk_option($cfg['filter_mode']??'exclude', "include", _("Include selected drives only"))?>
+  </select>
+
+<span id="drive_filter_label">_(Exclude drives)_</span>:
 : <select id="s1" name="exclude" style="display:none" multiple>
   <?foreach (array_filter($disks,'parity_disks') as $disk):?>
   <?=mk_option_check($cfg['exclude']??'',$disk['device'],sprintf('%s (%s)',_(my_disk($disk['name']),3),$disk['device']))?>
