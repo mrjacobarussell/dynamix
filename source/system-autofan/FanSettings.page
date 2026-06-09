@@ -129,6 +129,40 @@ function detectFanLow() {
     });
   }
 }
+function autoPair() {
+  var pwm = $('select[name=controller]').val();
+  $('#autopair_btn').prop('disabled',true).val('_(Scanning...)_');
+  $('#autopair_results').html('<em>_(Please wait — cycling each PWM channel to detect fans...)_</em>');
+  $.getJSON('/plugins/<?=$plugin?>/include/SystemFan.php', {op:'autopair', pwm:pwm}, function(data) {
+    $('#autopair_btn').prop('disabled',false).val('_(Auto Pair)_');
+    if (!data || data.length === 0) {
+      $('#autopair_results').html('<span style="color:red">_(No fan/PWM pairs detected.)_</span>');
+      return;
+    }
+    var html = '<table style="margin-top:6px;border-collapse:collapse">';
+    html += '<tr><th style="padding:3px 8px;text-align:left">PWM</th><th style="padding:3px 8px;text-align:left">Fan</th><th style="padding:3px 8px;text-align:left">RPM change</th><th></th></tr>';
+    $.each(data, function(i, p) {
+      html += '<tr>';
+      html += '<td style="padding:3px 8px">' + p.chip + ' - ' + p.pwm_name + '</td>';
+      html += '<td style="padding:3px 8px">' + p.fan_name + '</td>';
+      html += '<td style="padding:3px 8px">+' + p.rpm_delta + ' rpm</td>';
+      html += '<td style="padding:3px 8px"><input type="button" value="_(Apply)_" onclick="applyPair(\'' + p.pwm + '\',\'' + p.fan + '\')"></td>';
+      html += '</tr>';
+    });
+    html += '</table>';
+    $('#autopair_results').html(html);
+  }).fail(function() {
+    $('#autopair_btn').prop('disabled',false).val('_(Auto Pair)_');
+    $('#autopair_results').html('<span style="color:red">_(Auto pair failed.)_</span>');
+  });
+}
+function applyPair(pwm, fan) {
+  $('select[name=controller]').val(pwm).trigger('change');
+  $('select[name=fan]').val(fan).trigger('change');
+  $('input[name=pwm]').prop('placeholder','_(Click DETECT)_');
+  $('#pwm').prop('disabled',false);
+  $('#autopair_results').html('');
+}
 function changePWM(index,value) {
   if (index > 0) index--;
   $('input[name=index]').val(index);
@@ -201,7 +235,8 @@ _(PWM controller)_:
   <?foreach (list_pwm() as $pwm):?>
   <?=mk_option($_POST['controller']??$cfg['controller']??'', $pwm['sensor'], "{$pwm['chip']} - {$pwm['name']}")?>
   <?endforeach;?>
-  </select>
+  </select><input type="button" id="autopair_btn" value="_(Auto Pair)_" onclick="autoPair()" style="margin:0" title="_(Cycles all PWM channels to automatically detect which fan each one controls)_">
+<div id="autopair_results" style="margin-top:4px"></div>
 
 _(PWM fan)_:
 : <select name="fan">

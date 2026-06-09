@@ -119,5 +119,54 @@ case 'temps':
   header('Content-Type: application/json');
   echo json_encode(list_temp());
   break;
+case 'autopair':
+  // Cycle every PWM on the chip of the selected controller (or all chips if none given)
+  // and find which fan on the same chip responds. Returns array of matched pairs.
+  $filter_pwm = $_GET['pwm'] ?? '';
+  $filter_dir  = $filter_pwm && is_file($filter_pwm) ? realpath(dirname($filter_pwm)) : '';
+  $autofan_svc = "$docroot/plugins/$plugin/scripts/rc.autofan";
+  exec("$autofan_svc stop >/dev/null");
+  $pairs = [];
+  exec("find /sys/devices -type f -iname 'pwm[0-9]' -exec dirname \"{}\" +|uniq", $chips);
+  foreach ($chips as $chip) {
+    $chip_real = realpath($chip);
+    if ($filter_dir && $chip_real !== $filter_dir) continue;
+    $chip_name = is_file("$chip/name") ? trim(file_get_contents("$chip/name")) : '';
+    $pwm_files = preg_grep("/pwm\d+$/", scan_dir($chip));
+    $fan_files  = preg_grep("/fan\d+_input$/", scan_dir($chip));
+    if (empty($pwm_files) || empty($fan_files)) continue;
+    foreach ($pwm_files as $pwm_path) {
+      $default_method = file_get_contents($pwm_path."_enable");
+      $default_val    = file_get_contents($pwm_path);
+      file_put_contents($pwm_path."_enable", "1");
+      file_put_contents($pwm_path, "150");
+      sleep(3);
+      $init = [];
+      foreach ($fan_files as $f) $init[$f] = intval(file_get_contents($f));
+      file_put_contents($pwm_path, "255");
+      sleep(3);
+      $best_fan = ''; $best_delta = 0;
+      foreach ($fan_files as $f) {
+        $delta = intval(file_get_contents($f)) - $init[$f];
+        if ($delta > $best_delta) { $best_delta = $delta; $best_fan = $f; }
+      }
+      file_put_contents($pwm_path, $default_val);
+      file_put_contents($pwm_path."_enable", $default_method);
+      if ($best_fan) {
+        $pairs[] = [
+          'chip'      => $chip_name,
+          'pwm'       => $pwm_path,
+          'pwm_name'  => end(explode('/', $pwm_path)),
+          'fan'       => $best_fan,
+          'fan_name'  => end(explode('/', $best_fan)),
+          'rpm_delta' => $best_delta,
+        ];
+      }
+    }
+  }
+  exec("$autofan_svc start >/dev/null");
+  header('Content-Type: application/json');
+  echo json_encode($pairs);
+  break;
 }
 ?>
