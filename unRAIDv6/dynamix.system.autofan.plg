@@ -7,7 +7,7 @@
 <!ENTITY launch    "Settings/FanSettings">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/mrjacobarussell/dynamix/corsair-commander-pro/unRAIDv6/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "94b7119cbcd627fa91d5dfddfa5d28f1">
+<!ENTITY MD5       "f72e69e4cf1edc2c4a37a6faad2dd349">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0">

@@ -32,7 +32,7 @@
 # Dependencies: grep,awk,smartctl,hdparm
 #=======================================================================================
 version=1.9
-program_name="MRJAR autofan"
+program_name="AutoFan Enhanced Fork by mrjacobarussell"
 usage() {
  echo "Usage: $program_name [-t min_temp] [-T max_temp] [-m loop in minutes] [-c controller] [-f fan] [-l low]"
  echo "       $program_name -V      = print program version "
