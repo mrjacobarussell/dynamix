@@ -80,7 +80,7 @@ Fan control will now survive reboots even when the Commander Pro gets a differen
 `rc.autofan` resolves the current hwmon directory by kernel device name at start/stop time. The `hwmon_name` cfg field (e.g. `corsaircpro`) is the stable identifier — no udev rules needed. Works for any USB hwmon device, not just Corsair.
 
 ### Hardware sensor probe temperature source
-Any hwmon `temp*_input` file can now drive fan speed instead of hard drive temperatures. Useful for case ambient probes, CPU package temp, chipset temp, or any sensor the kernel exposes via hwmon.
+Any hwmon `temp*_input` file can now drive fan speed instead of (or instead of relying on) hard drive temperatures. Useful for case ambient probes, CPU package temp, chipset temp, or any sensor the kernel exposes via hwmon.
 
 ### Fan picker dropdown filtered by chip
 The PWM fan field is now a dropdown of fan sensors, filtered to the same hwmon chip as the selected PWM controller. Picking a Corsair PWM shows only Corsair fans. Detect auto-selects the matched fan in the dropdown.
@@ -96,3 +96,24 @@ The drive list can operate as an **include** list (monitor only selected drives)
 ## Contributing / Upstream
 
 A pull request with these changes has been submitted to [unraid/dynamix#3](https://github.com/unraid/dynamix/pull/3).
+
+---
+
+## Tips & usage notes
+
+### Enabling a PWM controller before configuring it
+
+The plugin requires the fan control service to be **Enabled** before the PWM fan dropdown is active. If you just selected a new PWM controller and the fan dropdown is empty or grayed out:
+
+1. Set **Fan control function** to `Enabled`
+2. Select your **PWM controller** (e.g. `corsaircpro - pwm5`)
+3. Set **PWM fan** to the matching fan (e.g. `fan5`)
+4. Click **Apply**
+
+You must apply with the service enabled before the settings take effect. Selecting a controller while the service is disabled and clicking Apply will save the config but not start control.
+
+### Max cooling mode (fans always full speed)
+
+If you want a fan zone to always run at full speed regardless of temperature — useful for hot drives or max airflow scenarios — set the **Drive filter mode** to `Include` and select **no drives**. With an empty include list, no drive temperature is ever read, `HIGHEST_TEMP` stays at 0, and the fan stays at whatever your low/off threshold dictates.
+
+Alternatively, set your **Low temperature threshold** and **High temperature threshold** both to `0` — this forces the fan to full speed immediately since any temperature ≥ 0°C triggers 100%.
