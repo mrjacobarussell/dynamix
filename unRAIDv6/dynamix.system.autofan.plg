@@ -15,10 +15,13 @@
 <CHANGES>
 ##Dynamix System Autofan (Enhanced Fork)
 
-###2025.06.09
+###2025.06.09 (mrjacobarussell)
 - Add hardware sensor probe temperature source (Corsair Commander Pro, hwmon sensors)
 - Stable hwmon device name resolution for USB controllers (fixes path loss after reboot)
 - New UI: Temperature source dropdown, sensor picker, stable device name field
+- Drive filter mode toggle (include/exclude selected drives)
+- Fix fan detect to only consider fans on same hwmon chip as selected PWM controller
+- Fan picker dropdown filtered by chip replaces free-text input
 
 ###2025.11.14 (upstream)
 - Migrate repository to Unraid
