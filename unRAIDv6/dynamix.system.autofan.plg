@@ -125,7 +125,7 @@ fi
 
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
-<URL>https://github.com/mrjacobarussell/dynamix/releases/download/2025.06.10/dynamix.system.autofan.txz</URL>
+<URL>https://github.com/mrjacobarussell/dynamix/releases/download/2025.06.09/dynamix.system.autofan.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
