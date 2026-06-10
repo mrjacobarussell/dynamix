@@ -3,17 +3,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "dynamix.system.autofan">
 <!ENTITY author    "mrjacobarussell (Enhanced Fork, based on Bergware/gfjardim)">
-<!ENTITY version   "2025.06.10c">
+<!ENTITY version   "2025.06.11">
 <!ENTITY launch    "Settings/FanSettings">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/mrjacobarussell/dynamix/corsair-commander-pro/unRAIDv6/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "db9b9f3fa607c9724dfa4853050613de">
+<!ENTITY MD5       "9b42252d6a25a68b0e031f108690d363">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0" icon="dynamix.system.autofan.png" support="https://github.com/mrjacobarussell/dynamix/issues">
 
 <CHANGES>
 ##Dynamix System Autofan (Enhanced Fork)
+
+###2025.06.11 (mrjacobarussell)
+- FanSettings page: show the Dashboard Fan Labels custom name (if set) next to the PWM controller dropdown
+- FanSettings page: center-align all field labels and inputs
 
 ###2025.06.10c (mrjacobarussell)
 - Fix description text: README headings (# ## ###) rendered oversized on Plugins page, shifting layout. Converted to bold.

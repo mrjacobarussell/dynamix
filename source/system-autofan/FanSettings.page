@@ -42,6 +42,15 @@ $fan_filter = $controller ? realpath(dirname($controller)) : '';
 $fans       = list_fan_page($fan_filter);
 if (empty($fans) && $fan_filter) $fans = list_fan_page('');
 
+$cur_fan_sensor = $cfg['fan'] ?? '';
+$dash_fan_name  = '';
+foreach ($fans as $f) {
+  if ($f['sensor'] === $cur_fan_sensor) {
+    $dash_fan_name = dashboard_fan_name($f['chip'], $f['name']);
+    break;
+  }
+}
+
 function temp_val($val) {
   global $display;
   return $display['unit']=='C' ? $val : round(9/5*$val+32);
@@ -75,6 +84,15 @@ function list_fan_page($filter_real_dir = '') {
     }
   }
   return $out;
+}
+function dashboard_fan_name($chip, $sensor_name) {
+  static $names = null;
+  if ($names === null) {
+    $f = '/boot/config/plugins/dynamix/fan_names.json';
+    $names = file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+  }
+  $fan_id = preg_replace('/_input$/', '', $sensor_name);
+  return $names["$chip - $fan_id"] ?? '';
 }
 function parity_disks($disk) {
   return $disk['type']=='Parity' && strpos($disk['status']??'','_NP')===false;
@@ -217,8 +235,12 @@ $(function() {
 });
 </script>
 
+<style>
+#fanauto-form dl > dt, #fanauto-form dl > dd { text-align:center; }
+#fanauto-form dl > dd > select, #fanauto-form dl > dd > input[type=text], #fanauto-form dl > dd > input[type=number] { margin:0 auto; }
+</style>
 <span class="bitstream" style="float:right;margin-right:12px"><?=exec("$fName -V")?></span>
-<form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="tempVal(this)">
+<form id="fanauto-form" markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="tempVal(this)">
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#include" value="plugins/<?=$plugin?>/include/update.autofan.php">
 <input type="hidden" name="#prefix" value="controller=c&fan=f&pwm=l&low=t&high=T&interval=m&temp_sensor=s">
@@ -230,7 +252,7 @@ _(Fan control function)_:
   </select>
 
 _(PWM controller)_:
-: <select name="controller" onchange="changePWM(this.selectedIndex,this.value)">
+: <?if ($dash_fan_name!==''):?><span class="orange-text" style="margin-right:8px">_(Dashboard label)_: <b><?=htmlspecialchars($dash_fan_name)?></b></span><?endif;?><select name="controller" onchange="changePWM(this.selectedIndex,this.value)">
   <?=mk_option($_POST['controller']??$cfg['controller']??'', "", _("None"))?>
   <?foreach (list_pwm() as $pwm):?>
   <?=mk_option($_POST['controller']??$cfg['controller']??'', $pwm['sensor'], "{$pwm['chip']} - {$pwm['name']}")?>
