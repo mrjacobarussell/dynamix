@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "dynamix.system.autofan">
 <!ENTITY author    "mrjacobarussell (Enhanced Fork, based on Bergware/gfjardim)">
-<!ENTITY version   "2025.06.10a">
+<!ENTITY version   "2025.06.10b">
 <!ENTITY launch    "Settings/FanSettings">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/mrjacobarussell/dynamix/corsair-commander-pro/unRAIDv6/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
@@ -14,6 +14,9 @@
 
 <CHANGES>
 ##Dynamix System Autofan (Enhanced Fork)
+
+###2025.06.10b (mrjacobarussell)
+- Version bump (no functional change)
 
 ###2025.06.10a (mrjacobarussell)
 - Recolor plugin icon to light blue
