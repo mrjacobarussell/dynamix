@@ -2,18 +2,23 @@
 
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "dynamix.system.autofan">
-<!ENTITY author    "Bergware/gfjardim/mrjacobarussell">
-<!ENTITY version   "2025.06.09">
+<!ENTITY author    "mrjacobarussell (Enhanced Fork, based on Bergware/gfjardim)">
+<!ENTITY version   "2025.06.10">
 <!ENTITY launch    "Settings/FanSettings">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/mrjacobarussell/dynamix/corsair-commander-pro/unRAIDv6/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "f72e69e4cf1edc2c4a37a6faad2dd349">
+<!ENTITY MD5       "e644ddd1d84cf975491ce9c1eca2a498">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0" icon="dynamix.system.autofan.png" support="https://github.com/mrjacobarussell/dynamix/issues">
 
 <CHANGES>
 ##Dynamix System Autofan (Enhanced Fork)
+
+###2025.06.10 (mrjacobarussell)
+- Rebrand: program name now "AutoFan Enhanced Fork by mrjacobarussell"
+- Add plugin icon and description for Plugins page
+- Update author/support links
 
 ###2025.06.09 (mrjacobarussell)
 - Add hardware sensor probe temperature source (Corsair Commander Pro, hwmon sensors)
@@ -120,7 +125,7 @@ fi
 
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
-<URL>https://github.com/mrjacobarussell/dynamix/releases/download/2025.06.09/dynamix.system.autofan.txz</URL>
+<URL>https://github.com/mrjacobarussell/dynamix/releases/download/2025.06.10/dynamix.system.autofan.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
